@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Discworld Shelf</title>
+<style>
+:root{--bg:#14132a;--card:#211f3d;--ink:#f1ecdc;--dim:#a29fc0;--gold:#e9b949;--ok:#4cc38a;--miss:#e5645a;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg) 85%,transparent);padding:calc(env(safe-area-inset-top) + 10px) 14px 8px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:19px;margin:0;letter-spacing:.3px}
+h1 span{color:var(--gold)}
+.count{font-variant-numeric:tabular-nums;color:var(--dim);font-size:14px}
+.count b{color:var(--ink);font-size:18px}
+.bar{height:6px;background:#2d2a52;border-radius:9px;margin:8px 0;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--ok));transition:width .3s}
+.row{display:flex;gap:8px;align-items:center}
+input[type=search]{flex:1;min-width:0;background:var(--card);border:1px solid #38356a;color:var(--ink);border-radius:10px;padding:10px 12px;font-size:16px}
+button{font:inherit;color:var(--ink);background:var(--card);border:1px solid #38356a;border-radius:10px;padding:9px 12px;cursor:pointer}
+button:active{transform:scale(.97)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border-radius:99px;padding:6px 12px;font-size:14px}
+.chip.on{background:var(--gold);color:#241d05;border-color:var(--gold);font-weight:600}
+main{padding:6px 14px 90px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:900px;margin:auto}
+@media(min-width:560px){main{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:760px){main{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--card);border-radius:var(--r);overflow:hidden;position:relative;border:2px solid transparent;display:flex;flex-direction:column}
+.card.have{border-color:var(--ok)}
+.cover{position:relative;aspect-ratio:2/3;background:#2d2a52;cursor:pointer;overflow:hidden}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.card:not(.have) .cover img,.card:not(.have) .ph{filter:grayscale(.85) brightness(.7)}
+.ph{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:16% 10px 0}
+.panel{background:#f4ecc8;color:#8a1538;border:3px double #3a2a1a;padding:10px 6px;text-align:center;font:700 17px/1.15 Georgia,serif;width:100%}
+.panel small{display:block;color:#3a2a1a;font-size:9px;letter-spacing:.5px;margin:3px 0}
+.ed{position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.7);color:var(--gold);border-radius:6px;padding:2px 6px;font-size:10px}
+.isbn{color:var(--dim);font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+.num{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.65);border-radius:8px;padding:2px 8px;font-size:13px;font-weight:700}
+.tick{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;background:rgba(0,0,0,.65);color:var(--miss)}
+.card.have .tick{background:var(--ok);color:#06251a}
+.cam{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.65);border:0;border-radius:50%;width:34px;height:34px;padding:0;font-size:16px}
+.meta{padding:8px 10px 10px}
+.t{font-weight:650;font-size:14px;line-height:1.2}
+.s{color:var(--dim);font-size:12px;margin-top:3px}
+.empty{grid-column:1/-1;text-align:center;color:var(--dim);padding:40px 0}
+dialog{background:var(--card);color:var(--ink);border:1px solid #38356a;border-radius:16px;max-width:420px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{margin:0 0 10px;font-size:18px}
+dialog .col{display:flex;flex-direction:column;gap:8px}
+dialog p{color:var(--dim);font-size:13px;margin:10px 0 0}
+textarea{width:100%;height:110px;background:var(--bg);color:var(--ink);border:1px solid #38356a;border-radius:10px;padding:8px;font-size:13px}
+.fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));background:var(--gold);color:#241d05;border:0;font-weight:700;border-radius:99px;padding:12px 18px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#000c;padding:8px 14px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Discworld <span>Shelf</span></h1>
+    <div class="count"><b id="have">0</b> / <span id="total">41</span> owned</div>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+  <div class="row">
+    <input type="search" id="q" placeholder="Search title…" autocomplete="off">
+    <button id="menuBtn" aria-label="Menu">⋯</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+<main id="grid"></main>
+<button class="fab" id="copyMissing">📋 Missing list</button>
+<div class="toast" id="toast"></div>
+<input type="file" id="file" accept="image/*" hidden>
+
+<dialog id="dlg">
+  <h2>Tools</h2>
+  <div class="col">
+    <button id="exp">Export backup (JSON)</button>
+    <button id="imp">Import backup</button>
+    <button id="refetch">Re-fetch covers</button>
+    <button id="reset">Reset my collection</button>
+    <button id="close">Close</button>
+  </div>
+  <textarea id="ta" placeholder="Backup text appears here / paste a backup here and press Import" hidden></textarea>
+  <p>Covers show the UK Corgi paperback (Josh Kirby art up to #26, Paul Kidby from Night Watch). Check the ISBN on the back of a book to match the edition. “other edition” = no Corgi cover found online; use 📷 to add your own.</p>
+  <p>Your collection is stored only in this browser on this device. To move it to another phone, export here and import there. Anyone who opens this page gets their own separate shelf.</p>
+</dialog>
+
+<script>
+// Main Discworld novels in publication order.
+// s = sub-series, i = UK Corgi paperback ISBN (the classic edition), c = Open Library cover id
+// already checked against that Corgi ISBN, a = cover artist of the UK edition.
+const K="Kirby", D="Kidby";
+const BOOKS=[
+[1,"The Colour of Magic",1983,"Rincewind","0552124753",7892565,K],[2,"The Light Fantastic",1986,"Rincewind","0552128481",7892569,K],
+[3,"Equal Rites",1987,"Witches","0552131059",7892571,K],[4,"Mort",1987,"Death","0552131067",7892579,K],
+[5,"Sourcery",1988,"Rincewind","0552131075",0,K],[6,"Wyrd Sisters",1988,"Witches","0552134600",0,K],
+[7,"Pyramids",1989,"Standalone","0552134619",14646309,K],[8,"Guards! Guards!",1989,"Watch","0552134627",0,K],
+[9,"Eric",1990,"Rincewind","",0,K],[10,"Moving Pictures",1990,"Industrial","0552134635",14647546,K],
+[11,"Reaper Man",1991,"Death","0552134643",14647213,K],[12,"Witches Abroad",1991,"Witches","0552134651",12993917,K],
+[13,"Small Gods",1992,"Standalone","0552138908",6306927,K],[14,"Lords and Ladies",1992,"Witches","0552138916",0,K],
+[15,"Men at Arms",1993,"Watch","0552140287",0,K],[16,"Soul Music",1994,"Death","0552140295",0,K],
+[17,"Interesting Times",1994,"Rincewind","0552142352",0,K],[18,"Maskerade",1995,"Witches","0552142360",0,K],
+[19,"Feet of Clay",1996,"Watch","0552142379",0,K],[20,"Hogfather",1996,"Death","0552145424",0,K],
+[21,"Jingo",1997,"Watch","0552145432",0,K],[22,"The Last Continent",1998,"Rincewind","0552146145",0,K],
+[23,"Carpe Jugulum",1998,"Witches","0552146153",0,K],[24,"The Fifth Elephant",1999,"Watch","0552146161",0,K],
+[25,"The Truth",2000,"Industrial","0552147680",14646658,K],[26,"Thief of Time",2001,"Death","0552148407",0,K],
+[27,"The Last Hero",2001,"Rincewind","",0,D],[28,"The Amazing Maurice and His Educated Rodents",2001,"Standalone","0552546933",0,"Wyatt"],
+[29,"Night Watch",2002,"Watch","0552148997",0,D],[30,"The Wee Free Men",2003,"Tiffany Aching","0552549053",0,D],
+[31,"Monstrous Regiment",2003,"Standalone","0552149411",0,D],[32,"A Hat Full of Sky",2004,"Tiffany Aching","0552551449",0,D],
+[33,"Going Postal",2004,"Industrial","0552149438",0,D],[34,"Thud!",2005,"Watch","0552152676",0,D],
+[35,"Wintersmith",2006,"Tiffany Aching","0552553719",0,D],[36,"Making Money",2007,"Industrial","0552154903",0,D],
+[37,"Unseen Academicals",2009,"Standalone","0552153370",0,D],[38,"I Shall Wear Midnight",2010,"Tiffany Aching","0552555592",0,D],
+[39,"Snuff",2011,"Watch","0552166758",0,D],[40,"Raising Steam",2013,"Industrial","0552170496",0,D],
+[41,"The Shepherd's Crown",2015,"Tiffany Aching","0552574090",0,D]
+].map(([n,t,y,s,i,c,a])=>({n,t,y,s,i,c,a}));
+
+const KEY="dw_shelf_v1", CKEY="dw_covers_v2";
+try{localStorage.removeItem("dw_covers_v1")}catch(e){}
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast("Storage full or blocked")}};
+let st=load(KEY,{owned:{},photos:{}}); st.owned=st.owned||{}; st.photos=st.photos||{};
+let covers=load(CKEY,{}); // n -> cover id or 0 (not found)
+let filter="all", query="", photoFor=null;
+
+const $=s=>document.querySelector(s);
+const grid=$("#grid");
+const FILTERS=[["all","All"],["missing","Missing"],["have","Owned"],["Rincewind","Rincewind"],["Witches","Witches"],["Death","Death"],["Watch","Watch"],["Industrial","Industrial"],["Tiffany Aching","Tiffany"],["Standalone","Standalone"]];
+$("#chips").innerHTML=FILTERS.map(([k,l])=>`<button class="chip" data-f="${k}">${l}</button>`).join("");
+$("#chips").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;filter=b.dataset.f;render()};
+$("#q").oninput=e=>{query=e.target.value.trim().toLowerCase();render()};
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hue=n=>(n*47)%360;
+
+const cov=b=>b.c?{id:b.c,ed:"corgi"}:(covers[b.n]||{});
+function coverHTML(b){
+  if(st.photos[b.n]) return `<img src="${st.photos[b.n]}" alt="">`;
+  const {id,ed}=cov(b);
+  const ph=`<div class="ph" style="background:linear-gradient(160deg,hsl(${hue(b.n)} 45% 28%),hsl(${hue(b.n)+40} 40% 14%))"><div class="panel"><small>TERRY PRATCHETT</small>${esc(b.t)}<small>A DISCWORLD NOVEL</small></div></div>`;
+  const tag=ed==="other"?`<span class="ed">other edition</span>`:"";
+  if(id) return ph+`<img src="https://covers.openlibrary.org/b/id/${id}-M.jpg" alt="" loading="lazy" onerror="this.remove()" onload="if(this.naturalWidth<20)this.remove()">`+tag;
+  return ph;
+}
+
+function render(){
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.f===filter));
+  const list=BOOKS.filter(b=>{
+    const own=!!st.owned[b.n];
+    if(filter==="missing"&&own)return false;
+    if(filter==="have"&&!own)return false;
+    if(!["all","missing","have"].includes(filter)&&b.s!==filter)return false;
+    return !query||b.t.toLowerCase().includes(query)||String(b.n)===query||(b.i&&b.i.includes(query.replace(/[^0-9x]/g,"")||"#"));
+  });
+  grid.innerHTML=list.map(b=>{
+    const own=!!st.owned[b.n];
+    return `<div class="card ${own?"have":""}" data-n="${b.n}">
+      <div class="cover" data-act="toggle">${coverHTML(b)}<span class="num">#${b.n}</span><span class="tick">${own?"✓":"✕"}</span>
+      <button class="cam" data-act="photo" aria-label="Add photo of my copy">📷</button></div>
+      <div class="meta"><div class="t">${esc(b.t)}</div><div class="s">${b.y} · ${b.s} · cover: ${b.a}</div>${b.i?`<div class="isbn">Corgi ISBN ${b.i}</div>`:""}</div></div>`;
+  }).join("")||`<div class="empty">Nothing here.</div>`;
+  const have=BOOKS.filter(b=>st.owned[b.n]).length;
+  $("#have").textContent=have; $("#total").textContent=BOOKS.length;
+  $("#fill").style.width=(have/BOOKS.length*100)+"%";
+}
+
+grid.onclick=e=>{
+  const card=e.target.closest(".card"); if(!card)return;
+  const n=+card.dataset.n, act=e.target.closest("[data-act]")?.dataset.act;
+  if(act==="photo"){photoFor=n;$("#file").click();return}
+  if(act==="toggle"){
+    st.owned[n]?delete st.owned[n]:st.owned[n]=1;
+    save(KEY,st);
+    const y=scrollY; render(); scrollTo(0,y);
+  }
+};
+
+// Photo of own copy: downscaled to ~260px wide JPEG
+$("#file").onchange=e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f||!photoFor)return;
+  const n=photoFor, img=new Image(), url=URL.createObjectURL(f);
+  img.onload=()=>{
+    const w=260,h=Math.round(img.height*w/img.width),c=document.createElement("canvas");
+    c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+    st.photos[n]=c.toDataURL("image/jpeg",.72); st.owned[n]=1; save(KEY,st); URL.revokeObjectURL(url); render(); toast("Photo saved");
+  };
+  img.src=url;
+};
+
+// Cover lookup via Open Library (runs in the browser, cached).
+// 1) the Corgi edition by ISBN, accepted only if the record's title matches;
+// 2) otherwise any edition, flagged "other edition".
+const norm=s=>s.toLowerCase().replace(/^the /,"").replace(/[^a-z0-9]+/g," ").trim();
+async function findCover(b){
+  const nt=norm(b.t);
+  if(b.i){
+    const r=await fetch(`https://openlibrary.org/isbn/${b.i}.json`);
+    if(r.ok){
+      const d=await r.json();
+      if(norm(d.title||"").startsWith(nt.split(" ").slice(0,2).join(" "))&&d.covers&&d.covers[0]>0) return {id:d.covers[0],ed:"corgi"};
+    } else if(r.status!==404) throw 0;
+  }
+  const u=`https://openlibrary.org/search.json?title=${encodeURIComponent(b.t)}&author=${encodeURIComponent("terry pratchett")}&fields=title,cover_i&limit=10`;
+  const r=await fetch(u); if(!r.ok) throw 0;
+  const d=await r.json();
+  const hit=(d.docs||[]).find(x=>x.cover_i&&norm(x.title)===nt)||(d.docs||[]).find(x=>x.cover_i&&norm(x.title).startsWith(nt));
+  return hit?{id:hit.cover_i,ed:"other"}:{id:0};
+}
+let fetching=false;
+async function fillCovers(force){
+  if(fetching)return; fetching=true;
+  if(force) covers={};
+  const todo=BOOKS.filter(b=>!b.c&&covers[b.n]===undefined);
+  let i=0;
+  async function worker(){
+    while(i<todo.length){
+      const b=todo[i++];
+      try{covers[b.n]=await findCover(b); save(CKEY,covers); render();}
+      catch(e){return} // offline / blocked: try again next visit
+    }
+  }
+  await Promise.all([worker(),worker(),worker()]);
+  fetching=false;
+}
+
+// Tools
+const dlg=$("#dlg"), ta=$("#ta");
+$("#menuBtn").onclick=()=>{ta.hidden=true;dlg.showModal()};
+$("#close").onclick=()=>dlg.close();
+$("#exp").onclick=()=>{ta.hidden=false;ta.value=JSON.stringify({v:1,owned:st.owned});ta.select();copy(ta.value,"Backup copied")};
+$("#imp").onclick=()=>{
+  if(ta.hidden){ta.hidden=false;ta.value="";ta.focus();toast("Paste backup, then press Import again");return}
+  try{const d=JSON.parse(ta.value); if(!d.owned)throw 0; st.owned=d.owned; save(KEY,st); render(); dlg.close(); toast("Imported")}
+  catch(e){toast("Invalid backup")}
+};
+$("#refetch").onclick=()=>{dlg.close();fillCovers(true);toast("Fetching covers…")};
+$("#reset").onclick=()=>{if(confirm("Delete your whole collection on this device?")){st={owned:{},photos:{}};save(KEY,st);render();dlg.close()}};
+
+async function copy(text,msg){
+  try{await navigator.clipboard.writeText(text);toast(msg)}catch(e){toast("Copy blocked – select the text manually")}
+}
+$("#copyMissing").onclick=async()=>{
+  const miss=BOOKS.filter(b=>!st.owned[b.n]);
+  const text=`Discworld – still missing (${miss.length}/${BOOKS.length}):\n`+miss.map(b=>`#${b.n} ${b.t}`).join("\n");
+  if(navigator.share){try{await navigator.share({text});return}catch(e){if(e.name==="AbortError")return}}
+  copy(text,"Missing list copied");
+};
+let tt; function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),1800)}
+
+render(); fillCovers();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
